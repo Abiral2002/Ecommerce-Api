@@ -2,6 +2,7 @@
 import { useSelector,useDispatch } from 'react-redux';
 import "./../../styles/Header.css"
 import HeaderLeft from './HeaderLeft';
+import HeaderRight from './HeaderRight';
 
 function Header() {
 
@@ -11,7 +12,7 @@ function Header() {
   return (
     <div className="header bg-primary">
       <HeaderLeft/>
-      
+      <HeaderRight/>
     </div>
   );
 }

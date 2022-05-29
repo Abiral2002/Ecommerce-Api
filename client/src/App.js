@@ -7,6 +7,7 @@ import Header from "./components/Header/Header"
 import "./styles/global.css"
 import "./index.css"
 
+
 function App() {
 
   const user=useSelector(getUser)
@@ -19,3 +20,4 @@ function App() {
 }
 
 export default App;
+

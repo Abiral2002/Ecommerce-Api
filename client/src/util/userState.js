@@ -6,7 +6,6 @@ import axios from "axios"
 
 
 const onStateChange= function onStateChange(callback) {
-  console.log('a')
     axios.get(
       "http://localhost:65000/user/auth/user-logged-in"
       ,{
@@ -32,5 +31,8 @@ const EffectHook=()=>{
   return loading
 }
 
+const $=(element)=>document.querySelector(element)
+
+
 export default EffectHook 
-export {onStateChange}
+export {onStateChange, $}

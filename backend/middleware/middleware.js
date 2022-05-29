@@ -61,7 +61,7 @@ AuthToken.createUserAccessToken=(req,res,next)=>{
         .json({ status: "error", message: "jwt token was tempered" });
       return;
     } else {
-      const acToken=jwt.sign(userData,process.env.JWT_SECRET,{expiresIn:"10s",algorithm:"HS256"});
+      const acToken=jwt.sign(userData,process.env.JWT_SECRET,{expiresIn:"100000s",algorithm:"HS256"});
       res.json({"status":"success","accessToken":"Bearer "+acToken})
     }
   });
@@ -241,13 +241,13 @@ Validator.validateProduct = (req, res, next) => {
     next();
   }
 };
-
+ 
 /**
  * method to validate to validate order
  */
 Validator.validateOrder = (req, res, next) => {
   var invalid = "";
-  if (req.body.productId == undefined) invalid += "No product id added.\n";
+  if (req.body.products == undefined ) invalid += "No products added.\n";
   if (req.body.address == undefined) invalid += "No address added.\n";
   if (
     req.body.contactNumber == undefined ||

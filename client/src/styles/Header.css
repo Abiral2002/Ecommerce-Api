@@ -17,6 +17,8 @@
 .header_search{
     display: flex;
     background-color: white;
+    width: 70%;
+    border-radius: 5px;
     justify-content: space-around;
     align-items: center;
 }
@@ -31,7 +33,7 @@
     font-size: 1.05rem;
     border: none;
     padding: 10px;
-    width: 90%;
+    width: 95%;
 }
 
 .suggestions{
@@ -59,7 +61,7 @@
 }
 
 .header_inputs{
-    background-color: white;
+    /* background-color: white; */
     width: 70%;
     padding: 5px;
     border-radius: 5px;
@@ -73,8 +75,6 @@
     position: absolute;
     background-color: white;
     border-radius: 5px;
-    top: 150%;
-    left: 0;
     width: 10em;
 }
 
@@ -86,4 +86,9 @@
 
 .avatar_dropdown p:hover{
     background-color: rgba(128, 128, 128, 0.205);
+}
+
+
+.header_right{
+    flex: 0.3;
 }

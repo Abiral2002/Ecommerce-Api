@@ -1,9 +1,14 @@
-<form action="http://localhost:65000/user/auth/register" method="POST" enctype="multipart/form-data">
-    <input type="text" name="fname">
-    <input type="text" name="lname">
-    <input type="text" name="username">
-    <input type="text" name="email">
-    <input type="text" name="password">
-    <input type="file" name="avatar">
+<body>
+    <form action="https://uat.esewa.com.np/epay/main" method="get">
+    <input value="27770" name="tAmt" type="hidden">
+    <input value="27670" name="amt" type="hidden">
+    <input value="0" name="txAmt" type="hidden">
+    <input value="0" name="psc" type="hidden">
+    <input value="100" name="pdc" type="hidden">
+    <input value="EPAYTEST" name="scd" type="hidden">
+    <input value="4bef3a5a64aa3a2ca846" name="pid" type="hidden">
+    <input value="http://127.0.0.1:65000/order/esewa/success" type="hidden" name="su">
+    <input value="http://127.0.0.1:65000/order/esewa/faliure?oid=4bef3a5a64aa3a2ca846" type="hidden" name="fu">
     <input value="Submit" type="submit">
-</form>
+    </form>
+</body>

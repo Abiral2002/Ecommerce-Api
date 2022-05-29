@@ -18,5 +18,5 @@ const cartSlice=createSlice({
 
 
 export const {increment, updateCartValue} = cartSlice.actions
-
+export const getCart=(state)=>state.cart
 export default cartSlice.reducer

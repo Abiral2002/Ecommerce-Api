@@ -34,33 +34,43 @@ router.post(
     const orderID = crypto.randomBytes(10).toString("hex");
     try {
       let productData = [];
-      for (let i = 0; i < req.body.productId.length; i++) {
+      for (let i = 0; i < req.body.products.length; i++) {
         let data = await databaseEcommerce.findById(
-          req.body.productId[i],
+          req.body.products[i].productId,
           { price: 1, stock: 1 },
           productModel
         );
         productData.push(data.data);
       }
       let outOfSock = "";
-      productData.forEach((product) => {
-        if (product[0].stock < 1) {
-          outOfSock += `Product out of stock ${product[0]._id}\n`;
+
+      for (let i = 0; i < productData.length; i++) {
+        if (productData[i][0].stock < req.body.products[i].quantity) {
+          outOfSock += `Product out of stock ${productData[i][0]._id}\n`;
         }
-      });
+      }
+      
+
       if (!outOfSock == "") {
         res.status(400).json({ status: "failure", message: outOfSock });
         return;
       }
 
       var totalAmount = 100;
-      productData.forEach((product) => {
-        totalAmount += product[0].price;
-      });
+
+
+      for (let i = 0; i < productData.length; i++) {
+       totalAmount+=productData[i][0].price*req.body.products[i].quantity
+      }
+
+      products= req.body.products.map(product=>({
+        productId:product.productId,
+        quantity:product.quantity
+      }))
 
       let orderData = {
         orderId: orderID,
-        productId: req.body.productId,
+        products,
         username: req.user.username,
         address: req.body.address,
         contactNumber: req.body.contactNumber,
@@ -79,9 +89,13 @@ router.post(
         price: totalAmount,
       };
       await databaseEcommerce.saveToModel(orderData, orderModel);
-      req.body.productId.forEach((productId) => {
-        updateProductStock(productId, { $inc: { stock: -1 } });
-      });
+
+      for (let i = 0; i < req.body.products.length; i++) {
+        let quantity=parseInt(req.body.products[i].quantity)
+        updateProductStock(req.body.products[i].productId, { $inc: { "stock": -quantity} });
+       }
+ 
+      // if (req.body.paymentMethod)
       setDeliery(deliveryData);
 
       if (req.body.paymentMethod == "esewa") {
@@ -105,7 +119,7 @@ router.post(
         res.json({ status: "Success", message: "Order placed" });
       }
     } catch (err) {
-      res.status(404).json({ status: "Faliure", message: err });
+      res.status(404).json({ status: "Faliure", message: err.message });
     }
   }
 );
@@ -131,7 +145,7 @@ let setDeliery = async function setDelivery(deliveryObj) {
       if (data.price < userData.price) userData = data;
     });
     deliveryObj.deliveryBoy = userData.username;
-    databaseEcommerce.saveToModel(deliveryObj, deliveryModel);
+    await databaseEcommerce.saveToModel(deliveryObj, deliveryModel);
   } catch (err) {
     console.log(err);
   }

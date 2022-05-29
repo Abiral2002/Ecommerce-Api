@@ -1,7 +1,11 @@
+
 const collectionName = "order";
 const orderSchema = {
   orderId: { type: String, require: true },
-  productId: [{ type: String, require: true }],
+  products: [{
+    productId:{type:String},
+    quantity:{type:Number}
+  }],
   username: { type: String, require: true },
   address: { type: String, require: true },
   contactNumber: { type: String, require: true },
