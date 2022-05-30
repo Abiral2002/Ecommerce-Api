@@ -10,3 +10,20 @@
     align-items: center;
     justify-content: center;
 }
+
+::-webkit-scrollbar{
+    width: 5px;
+    background-color: white;
+}
+
+::-webkit-scrollbar-thumb{
+    width: 4px;
+    background-color: rgb(92, 92, 92);
+    border-radius: 5px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
