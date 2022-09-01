@@ -4,7 +4,6 @@ const express = require("express");
 const router = express.Router();
 const { databaseEcommerce } = require("../../index");
 const jwt = require("jsonwebtoken");
-const axios = require("axios");
 let staffModel = require("./../staffs/staff").staffModel;
 const { Validator, AuthToken } = require("../../middleware/middleware");
 const bcrypt = require("bcrypt");
@@ -61,7 +60,7 @@ function multerMiddleWare(req, res, next) {
  * If the format is correct it hashes password and saves to database
  */
 router.post(
-  "/registor",
+  "/register",
   multerMiddleWare,
   Validator.validateStaffsData,
   async (req, res) => {
@@ -130,6 +129,8 @@ router.post(
   }
 );
 
+router.get("/get-access-token",AuthToken.createStaffAccessToken)
+
 /**
  * Post handler for /login
  * Checks if the username or password is undefined
@@ -160,6 +161,7 @@ router.post("/login", async (req, res) => {
           lName: userInformation.data[0].profile.lName,
         },
       };
+      
       const token = jwt.sign(payload, process.env.JWT_REFRESH_TOKEN);
       res.setHeader("Access-Control-Allow-Credentials", true)
       res.cookie("refresh-token","Bearer "+token, {
@@ -173,7 +175,7 @@ router.post("/login", async (req, res) => {
       res.json({ refreshToken: token });
       return;
     } else {
-      res.status(403).json({ status: "error", message: "User not found" });
+      res.status(403).json({ status: "error", message: "Password do not match" });
       return;
     }
   } catch (error) {

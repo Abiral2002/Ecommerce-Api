@@ -10,7 +10,8 @@ body{
 
 
 .login-container{
-    width: 90vw;
+    width: 100vw;
+    background-color: #E7E7E7;
     height: 100vh;
     margin: auto;
     position: relative;

@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const { databaseEcommerce } = require("../.././index");
-const bcrypt = require("bcrypt");
 const { AuthToken } = require("../../middleware/middleware");
 
 let userModel = databaseEcommerce.createSchemaModel(require("./userSchema"));
@@ -16,7 +15,6 @@ module.exports = {
 router.use("/auth", require("../auth/userAuth"));
 
 router.get("/dashboard", AuthToken.jwtAuthentication, async (req, res) => {
-  console.log(req.user.username);
   try {
     let userData = await databaseEcommerce.fetchDatabase(
       { username: req.user.username },

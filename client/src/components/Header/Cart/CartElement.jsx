@@ -9,7 +9,7 @@ function CartElement(props) {
     const [stock,setStock]=useState(props.stock)
     
     return (
-    <div className='relative w-11/ border-2 rounded-md my-8 items-center justify-center flex flex-col'>
+    <div className='relative w-11/12 border-2 rounded-md my-8 items-center justify-center flex flex-col'>
         <button className='z-20 absolute -top-5 right-1 backdrop-blur-lg p-2 bg-white rounded-full text-black cursor-pointer hover:bg-secondary hover:text-white transition-all '>
             <CloseIcon onClick={props.close}/>
         </button>

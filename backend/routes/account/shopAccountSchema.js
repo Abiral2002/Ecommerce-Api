@@ -1,4 +1,4 @@
-const collectionName = "shopAccountSchema";
+const collectionName = "shopAccount";
 const ShopAccountSchema = {
   cashed: Number,
   date: { type: Date, default: Date() },

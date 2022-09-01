@@ -12,8 +12,7 @@ function CartSideBar() {
           <CartElement stock={2}/>
         </div>
         {/* Cart Foot */}
-        <div className='absolute flex items-center justify-center flex-col bottom-0 w-full'>
-          <hr className=' border-t-2 w-11/12 mb-4 border-gray-200'/>
+        <div className='absolute border-t-2 border-primary pt-4 flex items-center justify-center flex-col bottom-0 w-full'>
           <div className='flex justify-between w-10/12'>
             <div className='text-xl'>Total</div>
             <div className='text-2xl font-normal'><span className='text-lg font-semi text-gray-500'>Rs. </span>100.000</div>

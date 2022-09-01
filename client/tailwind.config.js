@@ -8,6 +8,10 @@ module.exports = {
       colors:{
         primary:'#0AA1DD',
         secondary:"#1865F2"
+      },
+      height:{
+        sidebar:"60vh",
+        bgImage:"40vh"
       }
     },
   },

@@ -10,7 +10,7 @@ function Header() {
   const dispatch=useDispatch()
 
   return (
-    <div className="header bg-primary">
+    <div className="header bg-transparent">
       <HeaderLeft/>
       <HeaderRight/>
     </div>

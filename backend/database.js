@@ -25,6 +25,16 @@ class DatabaseMongo extends mongoose.Mongoose {
     });
   }
 
+  saveManyToModel(data, databaseModel) {
+    return new Promise((resolve, reject) => {
+      databaseModel.insertMany(data).then(data=>{
+        resolve("Data inserted")
+      }).catch(e=>{
+        reject("Data insertion failed")
+      })
+    });
+  }
+
   saveToModel(data, databaseModel) {
     return new Promise((resolve, reject) => {
       let insertTo = new databaseModel(data);
@@ -45,6 +55,7 @@ class DatabaseMongo extends mongoose.Mongoose {
         else resolve(result);
       });
     });
+
   }
 
   async findOrCreate(query, data, options, databaseModel) {
@@ -115,7 +126,6 @@ class DatabaseMongo extends mongoose.Mongoose {
         }
 
       }).count();
-
     });
   }
 }

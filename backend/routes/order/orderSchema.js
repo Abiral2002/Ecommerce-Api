@@ -1,4 +1,3 @@
-
 const collectionName = "order";
 const orderSchema = {
   orderId: { type: String, require: true },
@@ -17,6 +16,7 @@ const orderSchema = {
   paid: { type: Boolean, default: false },
   invalidTransaction: { type: Boolean, default: false },
   refId: { type: String, default: "" },
+  orderDate:{type:Date,default:Date()}
 };
 
 module.exports = {

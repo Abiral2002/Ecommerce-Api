@@ -22,12 +22,10 @@ let Validator = Object.create(null);
  * calls next middle ware and adds user data to req object
 */
 AuthToken.jwtAuthentication = (req, res, next) => {
-  let token =
-    req.headers["authorization"] && req.headers["authorization"].split(" ")[1];
-  if (token == undefined) {
-    res.status(401).json({ status: "error", message: "no jwt found" });
-    return;
-  }
+  let token = req.headers["authorization"] && req.headers["authorization"].split(" ")[1];
+
+  if (token == undefined) return res.status(401).json({ status: "error", message: "no jwt found" });
+
   jwt.verify(token, process.env.JWT_SECRET, (err, userData) => {
     if (err) {
       res
@@ -42,14 +40,12 @@ AuthToken.jwtAuthentication = (req, res, next) => {
 };
 
 
-// AuthToken.destroyToken=(req,res,next)=>{
-  
-// }
-
-
-AuthToken.createUserAccessToken=(req,res,next)=>{
-  let token =
-    req.cookies["refresh-token"] && req.cookies["refresh-token"].split(" ")[1];
+/**
+ * Validate refresh token and create access token for user
+ */
+AuthToken.createUserAccessToken = (req, res, next) => {
+  let token = req.cookies["refresh-token"] && req.cookies["refresh-token"].split(" ")[1];
+  token == undefined ? token = req.headers["refresh-token"] && req.headers["refresh-token"].split(" ")[1] : token = undefined
   if (token == undefined) {
     res.status(401).json({ status: "error", message: "no refresh token found" });
     return;
@@ -61,16 +57,19 @@ AuthToken.createUserAccessToken=(req,res,next)=>{
         .json({ status: "error", message: "jwt token was tempered" });
       return;
     } else {
-      const acToken=jwt.sign(userData,process.env.JWT_SECRET,{expiresIn:"100000s",algorithm:"HS256"});
-      res.json({"status":"success","accessToken":"Bearer "+acToken})
+      const acToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: "100000s", algorithm: "HS256" });
+      res.json({ "status": "success", "accessToken": "Bearer " + acToken })
     }
   });
 }
 
-AuthToken.createStaffAccessToken=(req,res,next)=>{
-  let token =
-    req.headers["authorization"] && req.headers["authorization"].split(" ")[1];
-  if (token == undefined) {
+/**
+ * Validate refresh token and create access token for staffs
+ */
+AuthToken.createStaffAccessToken = (req, res, next) => {
+  let token = req.cookies["refresh-token"] && req.cookies["refresh-token"].split(" ")[1];
+  token == undefined ? token = req.headers["refresh-token"] && req.headers["refresh-token"].split(" ")[1] : token = undefined
+  if (token === undefined) {
     res.status(401).json({ status: "error", message: "no refresh token found" });
     return;
   }
@@ -81,14 +80,11 @@ AuthToken.createStaffAccessToken=(req,res,next)=>{
         .json({ status: "error", message: "jwt token was tempered" });
       return;
     } else {
-      const acToken=jwt.sign(userData,JWT_SECRET,{expiresIn:"10s",algorithm:"HS256"});
-      req.setHeader("authorization",token)
+      const acToken = jwt.sign(userData, process.env.JWT_SECRET, { expiresIn: "100000s", algorithm: "HS256" });
+      res.json({ "status": "success", "accessToken": "Bearer " + acToken })
     }
   });
 }
-
-
-
 
 /**
  * method to validate information for registering user
@@ -113,10 +109,10 @@ Validator.validateUserData = (req, res, next) => {
     if (!req.body.fname) invalid += "No First Name Entered\n";
     if (!req.body.lname) invalid += "No Last Name Entered\n";
     if (invalid != "") {
-      if (req.file.filename!==undefined)
+      if (req.file.filename !== undefined)
         fs.unlink(
           path.join("./public/images/users", req.file.filename),
-          (err) => {}
+          (err) => { }
         );
       res.status(401).json({ status: "Faild", message: invalid });
       return;
@@ -130,7 +126,7 @@ Validator.validateUserData = (req, res, next) => {
       profile: {
         fName: req.body.fname,
         lName: req.body.lname,
-        avatar: req.file.filename  == undefined ? "" : req.file.filename,
+        avatar: req.file.filename == undefined ? "" : req.file.filename,
       },
     };
     req.userData = data;
@@ -145,53 +141,59 @@ Validator.validateUserData = (req, res, next) => {
  * If not valid deletes the images of staffs and sends responce
  */
 Validator.validateStaffsData = (req, res, next) => {
-  const re =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  var invalid = "";
-  if (
-    req.body.username == undefined ||
-    req.body.username.indexOf(" ") != -1 ||
-    req.body.username < 6
-  )
-    invalid +=
-      "Username should be more then 6 character long with no white space.\n";
-  if (req.body.password == undefined || req.body.password.length < 7)
-    invalid += "Password must be >=7 character long\n";
-  if (req.body.email == undefined || !re.test(req.body.email.toLowerCase()))
-    invalid += "Invalid Email\n";
-  if (req.body.address == undefined || !re.test(req.body.email.toLowerCase()))
-    invalid += "Invalid address\n";
-  if (
-    req.body.contactNumber == undefined ||
-    !/\+977 \d\d\d\d\d\d\d\d\d\d/.test(req.body.contactNumber)
-  )
-    invalid += "Not valid phone number.\n";
-  if (!req.body.fname) invalid += "No First Name Entered\n";
-  if (!req.body.lname) invalid += "No Last Name Entered\n";
-  if (req.file == undefined || req.file.filename == undefined)
-    invalid += "No image included.\n";
-  if (invalid != "") {
-    if (req.file.filename != undefined)
-      fs.unlink(
-        path.join("./public/images/staffs", req.file.filename),
-        (err) => {}
-      );
-    res.status(401).json({ status: "Faild", message: invalid });
-    return;
+  try {
+    const re =
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    var invalid = "";
+    if (
+      req.body.username == undefined ||
+      req.body.username.indexOf(" ") != -1 ||
+      req.body.username < 6
+    )
+      invalid +=
+        "Username should be more then 6 character long with no white space.\n";
+    if (req.body.password == undefined || req.body.password.length < 7)
+      invalid += "Password must be >=7 character long\n";
+    if (req.body.email == undefined || !re.test(req.body.email.toLowerCase()))
+      invalid += "Invalid Email\n";
+    if (req.body.address == undefined || !re.test(req.body.email.toLowerCase()))
+      invalid += "Invalid address\n";
+    if (
+      req.body.contactNumber == undefined ||
+      !/\+977 \d\d\d\d\d\d\d\d\d\d/.test(req.body.contactNumber)
+    )
+      invalid += "Not valid phone number.\n";
+    if (!req.body.fname) invalid += "No First Name Entered\n";
+    if (!req.body.lname) invalid += "No Last Name Entered\n";
+    if (req.file == undefined || req.file.filename == undefined)
+      invalid += "No image included.\n";
+    if (invalid != "") {
+      if (req.file.filename != undefined)
+        fs.unlink(
+          path.join("./public/images/staffs", req.file.filename),
+          (err) => { }
+        );
+      res.status(401).json({ status: "Faild", message: invalid });
+      return;
+    }
+    const hashPassword = bcrypt.hashSync(req.body.password, saltRound);
+    let data = {
+      username: req.body.username,
+      password: hashPassword,
+      email: req.body.email,
+      profile: {
+        fName: req.body.fname,
+        lName: req.body.lname,
+        avatar: req.file.filename == undefined ? "" : req.file.filename,
+      },
+    };
+    req.userData = data;
+    next();
   }
-  const hashPassword = bcrypt.hashSync(req.body.password, saltRound);
-  let data = {
-    username: req.body.username,
-    password: hashPassword,
-    email: req.body.email,
-    profile: {
-      fName: req.body.fname,
-      lName: req.body.lname,
-      avatar: req.file.filename == undefined ? "" : req.file.filename,
-    },
-  };
-  req.userData = data;
-  next();
+  catch (e) {
+    res.status(401).json({ status: "failure", message: "multipart/form-data required" });
+  }
+
 };
 
 /**
@@ -199,30 +201,31 @@ Validator.validateStaffsData = (req, res, next) => {
  * If not valid deletes the images of product and sends responce
  */
 Validator.validateProduct = (req, res, next) => {
-  if (req.user.role != "admin") {
-    res.status(403).json({ status: "error", message: "Only access by admin" });
-    return;
-  }
-  var invalid = "";
-  if (req.body.productName == undefined) invalid += "No product name.\n";
-  if (req.body.productDescription == undefined)
-    invalid += "No product Description.\n";
-  if (req.body.category == undefined) invalid += "No Category included.\n";
-  if (req.body.stock == undefined) invalid += "No stock included.\n";
-  if (req.body.price == undefined) invalid += "No price included.\n";
-  if (req.files[0] == undefined) invalid += "No image included.\n";
-  if (invalid != "") {
-    if (req.files[0] != undefined) {
-      req.files.forEach((item) => {
-        fs.unlink(
-          path.join("./public/images/products", item.filename),
-          (err) => {}
-        );
-      });
+  try {
+    if (req.user.role != "admin") {
+      res.status(403).json({ status: "error", message: "Only access by admin" });
+      return;
     }
-    res.status(401).json({ status: "Faild", message: invalid });
-    return;
-  } else {
+    var invalid = "";
+    if (req.body.productName == undefined) invalid += "No product name.\n";
+    if (req.body.productDescription == undefined)
+      invalid += "No product Description.\n";
+    if (req.body.category == undefined) invalid += "No Category included.\n";
+    if (req.body.stock == undefined) invalid += "No stock included.\n";
+    if (req.body.price == undefined) invalid += "No price included.\n";
+    if (req.files[0] == undefined) invalid += "No image included.\n";
+    if (invalid != "") {
+      if (req.files[0] != undefined) {
+        req.files.forEach((item) => {
+          fs.unlink(
+            path.join("./public/images/products", item.filename),
+            (err) => { }
+          );
+        });
+      }
+      res.status(401).json({ status: "Faild", message: invalid });
+      return;
+    }
     let images = req.files.map((item) => {
       return item.filename;
     });
@@ -230,24 +233,27 @@ Validator.validateProduct = (req, res, next) => {
       productName: req.body.productName.toLowerCase(),
       desc: req.body.productDescription,
       category: req.body.category.toLowerCase(),
-      subCategory:
-        req.body.subCategory != undefined
-          ? req.body.subCategory.toLowerCase()
-          : "",
+      subCategory: (req.body.subCategory) ? req.body.subCategory.trim().split(" ") : [],
       stock: Number(req.body.stock),
       price: Number(req.body.price),
       images: images,
     };
+    if (req.body.sale && parseInt(req.body.sale)!=NaN) req.product.sale=req.body.sale
     next();
   }
+
+  catch(e){
+    res.status(401).json({ status: "failure", message: "multipart/form-data required" });
+  }
+  
 };
- 
+
 /**
  * method to validate to validate order
  */
 Validator.validateOrder = (req, res, next) => {
   var invalid = "";
-  if (req.body.products == undefined ) invalid += "No products added.\n";
+  if (req.body.products == undefined) invalid += "No products added.\n";
   if (req.body.address == undefined) invalid += "No address added.\n";
   if (
     req.body.contactNumber == undefined ||
@@ -260,9 +266,10 @@ Validator.validateOrder = (req, res, next) => {
   if (invalid != "") {
     res.status(404).json({ status: "error", message: invalid });
     return;
-  } else {
-    next();
   }
+  req.body.products = Array.from(req.body.products).flat()
+  next();
+
 };
 
 module.exports = { AuthToken, Validator };

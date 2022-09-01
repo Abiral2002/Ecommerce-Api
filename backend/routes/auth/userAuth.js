@@ -9,7 +9,6 @@ let userModel = require("../users/user").userModel;
 const querystring = require("querystring");
 const { Validator, AuthToken } = require("../../middleware/middleware");
 const bcrypt = require("bcrypt");
-const saltRound = 10;
 const fs = require("fs");
 
 /**
@@ -51,9 +50,9 @@ function multerMiddleWare(req, res, next) {
   upload(req, res, (err) => {
     if (err) {
       res.json({ status: "failure", message: err });
-    } else {
-      next();
+      return
     }
+    next();
   });
 }
 
@@ -156,7 +155,7 @@ router.get("/google/config", async (req, res) => {
       res.cookie("refresh-token","Bearer "+token, {
         httpOnly: true,
         maxAge:10*12*30*24*60*60*60*1000,
-        sameSite: false,
+        sameSite: true,
         path:"/",
         signed:false,
         secure: true,
@@ -169,12 +168,12 @@ router.get("/google/config", async (req, res) => {
       res.cookie("refresh-token","Bearer "+token, {
         httpOnly: true,
         maxAge:10*12*30*24*60*60*60*1000,
-        sameSite: false,
         path:"/",
+        secure:true,
+        sameSite:"none",
         signed:false,
-        secure: true,
       });
-      res.json({ refreshToken: token });
+      res.redirect("http://localhost:3000")
       return
     }
   } catch (err) {
@@ -224,7 +223,7 @@ router.post("/login", async (req, res) => {
       {},
       userModel
     );
-    if (bcrypt.compareSync(password, userInformation.data[0].password)) {
+    if (bcrypt.compareSync(password, userInformation.data[0].password)) { 
       let payload = {
         username: userInformation.data[0].username,
         email: userInformation.data[0].email,
@@ -240,10 +239,11 @@ router.post("/login", async (req, res) => {
       res.cookie("refresh-token","Bearer "+token, {
         httpOnly: true,
         maxAge:10*12*30*24*60*60*60*1000,
-        sameSite: false,
         path:"/",
         signed:false,
-        secure: true,
+        secure:true,
+        sameSite:"none",
+
       });
       res.json({ refreshToken: token });
       return
@@ -288,6 +288,5 @@ router.get("/user-logged-in",(req,res)=>{
   });
 })
 
-// router.get("/logout",)
 
 module.exports = router;

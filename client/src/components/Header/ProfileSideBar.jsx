@@ -30,7 +30,7 @@ function ProfileSideBar() {
         return (
             <label className='mb-3'>
                 <p className=' text-left font-light'>{prop.title}</p>
-                <input className='w-full text-xl focus:outline-none' value={prop.value} name={prop.name} onChange={(e)=>(setUserProfile(prev=>({...prev,[prop.name]:e.target.value})))}/>
+                <input className='w-full text-xl focus:outline-none p-2 rounded-md' value={prop.value} name={prop.name} onChange={(e)=>(setUserProfile(prev=>({...prev,[prop.name]:e.target.value})))}/>
                 <hr/>
             </label>
         )
@@ -38,7 +38,7 @@ function ProfileSideBar() {
 
     return (
         <div className='h-full relative flex flex-col justify-center items-center'>
-            <div className='flex flex-wrap flex-col absolute top-20 items-center justify-around w-8/12 mb-5'>
+            <div className='flex flex-wrap flex-col absolute top-5 lg:top-20 md:top-20 items-center justify-around w-8/12 mb-5'>
                 <div className='flex flex-col justify-center items-center h-5/6'>
                     <img className='w-20 rounded-full' src={user.profile.avatar.indexOf("h")===-1?`http://localhost:65000/images/users/${user.profile.avatar}`:user.profile.avatar} />
                     <hr/>
@@ -52,7 +52,7 @@ function ProfileSideBar() {
                     <p className='text-lg font-light text-center text-black'>{user.email}</p>
                 </div>
             </div>
-            <form className='flex w-10/12 flex-col' onSubmit={(e)=>{sendEditProfile(e)}}>
+            <form className='flex w-10/12 flex-col mt-5 lg:mt-0 md:0' onSubmit={(e)=>{sendEditProfile(e)}}>
                 {inputProfile({
                     name:"fName",
                     value:userPorfile.fName,
@@ -65,7 +65,7 @@ function ProfileSideBar() {
                 })}
                 <label className='mb-3'>
                     <p className='text-left font-light'>Email</p>
-                    <input className='w-full text-xl focus:outline-none' value={user.email}/>
+                    <input className='w-full p-2 rounded-md text-xl focus:outline-none' value={user.email}/>
                     <hr/>
                 </label>
                 <label className='text-left mt-5' >

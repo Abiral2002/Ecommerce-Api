@@ -251,14 +251,16 @@ function Login(props) {
         }
     }
 
+    const classValue=props.value?"fixed z-20 right-0 top-0 left-0 w-screen overflow-y-scroll":"hidden"
     
   return (
+    <div className={classValue}>
     <div className='login-container'>
         <div className='login-card'>
             <div className='login-content'>
                 <div className='login-header'>
                     <p>{isRegistered?"Login":"Signup"}</p>
-                    <button><CloseIcon /></button>
+                    <button onClick={props.close}><CloseIcon /></button>
                 </div>
                 <div className='login-oauth-section' onClick={()=>{window.location.href="http://localhost:65000/user/auth/google"}}>
                     <div className='oauth-container'>
@@ -374,6 +376,7 @@ function Login(props) {
             </div>
         </div>
         <ToastContainer/>
+    </div>
     </div>
   )
 }

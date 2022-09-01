@@ -1,5 +1,6 @@
 .header{
     display: flex;
+    justify-content: center;
     padding: 10px;
 }
 
@@ -17,7 +18,7 @@
 .header_search{
     display: flex;
     background-color: white;
-    width: 70%;
+    width: 80%;
     border-radius: 5px;
     justify-content: space-around;
     align-items: center;
@@ -33,7 +34,7 @@
     font-size: 1.05rem;
     border: none;
     padding: 10px;
-    width: 95%;
+    width: 100%;
 }
 
 .suggestions{

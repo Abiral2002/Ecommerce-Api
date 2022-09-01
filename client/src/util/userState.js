@@ -16,7 +16,7 @@ const onStateChange= function onStateChange(callback) {
     }).catch(err=>{
       callback(null,null)
     })
-  }
+}
 
 const EffectHook=()=>{
   const [loading,setLoading]=useState(true)

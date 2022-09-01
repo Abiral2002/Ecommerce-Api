@@ -4,12 +4,14 @@ const router = express.Router();
 const { databaseEcommerce } = require("../.././index");
 const { AuthToken, Validator } = require("../../middleware/middleware");
 let orderModel = databaseEcommerce.createSchemaModel(require("./orderSchema"));
+let {couponModel}=require("./../coupon/coupons")
 
 module.exports = {
   orderModel,
   router,
 };
 
+let {offerList}=require("./../offers/offer")
 let { productModel } = require("../products/product");
 let { staffModel } = require("./../staffs/staff");
 let { deliveryModel } = require("./../delivery/delivery");
@@ -26,44 +28,62 @@ let axios = require("axios");
  * Save order data in orders collection
  * If payment method = esewa sends json for request to esewa
  */
-router.post(
-  "/",
-  AuthToken.jwtAuthentication,
-  Validator.validateOrder,
-  async (req, res) => {
+router.post("/",AuthToken.jwtAuthentication,Validator.validateOrder, async (req, res) => {
     const orderID = crypto.randomBytes(10).toString("hex");
     try {
       let productData = [];
       for (let i = 0; i < req.body.products.length; i++) {
-        let data = await databaseEcommerce.findById(
-          req.body.products[i].productId,
-          { price: 1, stock: 1 },
-          productModel
-        );
+        let data = await databaseEcommerce.findById(req.body.products[i].productId,{price:1,stock:1,sale:1,offer:1,subCategory:1,category:1},productModel);
         productData.push(data.data);
       }
       let outOfSock = "";
 
       for (let i = 0; i < productData.length; i++) {
-        if (productData[i][0].stock < req.body.products[i].quantity) {
-          outOfSock += `Product out of stock ${productData[i][0]._id}\n`;
-        }
+        if (productData[i][0].stock < req.body.products[i].quantity) outOfSock += `Product out of stock ${productData[i][0]._id}\n`;
       }
       
+      if (outOfSock !== "") return res.status(400).json({ status: "failure", message: outOfSock });
 
-      if (!outOfSock == "") {
-        res.status(400).json({ status: "failure", message: outOfSock });
-        return;
-      }
+      let totalAmount = 100;
 
-      var totalAmount = 100;
-
-
+      // For setting offer price and sale price
       for (let i = 0; i < productData.length; i++) {
-       totalAmount+=productData[i][0].price*req.body.products[i].quantity
+          let saleAmount=((productData[i][0].sale/100)*productData[i][0].price)*req.body.products[i].quantity
+          let offerAmount=0
+          if (productData[i][0].offer && offerList.offerList[productData[i][0].offer]) offerAmount=((offerList.offerList[productData[i][0].offer].priceOff/100)*productData[i][0].price)*req.body.products[i].quantity
+          else{
+            let keys=Object.keys(offerList.offerList)
+            let found=""
+            for(let j=0;j<keys.length;j++){
+              offerList.offerList[keys[j]].category.forEach(data=>{
+                if (data===productData[i][0].category) found=keys[j]
+              })
+              if(!found){
+                offerList.offerList[keys[j]].subCategory.forEach(data=>{
+                  if(productData[i][0].subCategory.indexOf(data)!==-1) found=keys[j] 
+                })
+              }
+              if (found!=="") break
+            }
+            if(found!=="") offerAmount=offerAmount=((offerList.offerList[found].priceOff/100)*productData[i][0].price)*req.body.products[i].quantity
+          }
+          totalAmount+=(productData[i][0].price*req.body.products[i].quantity)-(saleAmount+offerAmount)
       }
 
-      products= req.body.products.map(product=>({
+      // For setting coupon price
+      if(req.body.coupon){
+        try{
+          let couponInfo=await databaseEcommerce.fetchDatabase({couponName:req.body.coupon,valid:true},{},couponModel)
+          let discount=couponInfo.data[0].priceOff
+          totalAmount=totalAmount-((discount/100)*totalAmount)
+          databaseEcommerce.updateToModel({couponName:req.body.coupon},{ $inc :{ numberOfRequest :  1}},couponModel).catch((err)=>{})
+        }
+        catch(e){
+          totalAmount=totalAmount
+        }
+      }
+  
+      let products= req.body.products.map(product=>({
         productId:product.productId,
         quantity:product.quantity
       }))
@@ -86,7 +106,7 @@ router.post(
         customersName: req.user.profile.fName + " " + req.user.profile.lName,
         address: req.body.address,
         phoneNumber: req.body.contactNumber,
-        price: totalAmount,
+        price: totalAmount, 
       };
       await databaseEcommerce.saveToModel(orderData, orderModel);
 
@@ -95,34 +115,36 @@ router.post(
         updateProductStock(req.body.products[i].productId, { $inc: { "stock": -quantity} });
        }
  
-      // if (req.body.paymentMethod)
       setDeliery(deliveryData);
-
       if (req.body.paymentMethod == "esewa") {
-        res.json({
-          redirect_url: "https://uat.esewa.com.np/epay/main",
-          method: "POST",
-          values: {
-            tAmt: totalAmount,
-            amt: totalAmount - 100,
-            txAmt: 0,
-            psc: 0,
-            pdc: 100,
-            scd: "EPAYTEST",
-            pid: orderID,
-            su: "http://127.0.0.1:65000/order/esewa/success",
-            fu: `http://127.0.0.1:65000/order/esewa/faliure?oid=${orderID}`,
-          },
-        });
-        return;
-      } else {
-        res.json({ status: "Success", message: "Order placed" });
+        return sendEsewa(res,totalAmount,orderID);
       }
+      return res.json({ status: "Success", message: "Order placed" });
+      
     } catch (err) {
-      res.status(404).json({ status: "Faliure", message: err.message });
+      console.log(err)
+      res.status(404).json({ status: "Faliure", message: err.data });
     }
   }
 );
+
+function sendEsewa(res,amount,orderId){
+  return res.json({
+    redirect_url: "https://uat.esewa.com.np/epay/main",
+    method: "POST",
+    values: {
+      tAmt: amount,
+      amt: amount - 100,
+      txAmt: 0,
+      psc: 0,
+      pdc: 100,
+      scd: "EPAYTEST",
+      pid: orderId,
+      su: "http://127.0.0.1:65000/order/esewa/success",
+      fu: `http://127.0.0.1:65000/order/esewa/faliure?oid=${orderId}`,
+    },
+  });
+}
 
 let updateProductStock = async function updateProductStock(pid, query) {
   databaseEcommerce
